@@ -16,7 +16,8 @@ class App extends Component {
                 { name: 'Jonh Smith', salary: 8000, increase: false, rise: true, id: 1 },
                 { name: 'Max Smip', salary: 15000, increase: false, rise: false, id: 2 },
                 { name: 'Alex Li', salary: 7600, increase: false, rise: false, id: 3 },
-            ]
+            ],
+            term: ''
         }
         this.maxId = 4;
     }
@@ -45,39 +46,56 @@ class App extends Component {
         });
     }
 
-    onToggleIncrease = (id) => {
-        // console.log(`increase this ${id}`);
-        this.setState(({ data }) => {
-            const index = data.findIndex(elem => elem.id === id);
+    onToggleProp = (id, prop) => {
+        this.setState(({ data }) => ({
+            data: data.map(item => {
+                if (item.id === id) {
+                    return {
+                        ...item, [prop]: !item[prop],
+                    }
+                }
+                return item;
+            })
+        }))
+    }
 
-            const old = data[index]
-            const newItem = { ...old, increase: !old.increase }
-            const newArr = [...data.slice(0, index), newItem, ...data.slice(index + 1)]
+    searchEmp = (items, term) => {
+        if (term.length === 0) {
+            return items;
+        }
 
-            return {
-                data: newArr
-            }
+        return items.filter(item => {
+            return item.name.indexOf(term) > -1
         })
     }
 
-    onToggleRise = (id) => {
-        console.log(`rise this ${id}`);
+    onUpdateSearch = (term) => {
+        this.setState({ term })
     }
 
     render() {
+
+        const { data, term } = this.state
+        const employees = this.state.data.length
+        const increased = this.state.data.filter(item => item.increase).length
+        const visibleData = this.searchEmp(data, term)
+
         return (
             <div className="app" >
-                <AppInfo />
+                <AppInfo
+                    employees={employees}
+                    increased={increased}
+                />
 
                 <div className="search-panel">
-                    <SearchPanel />
+                    <SearchPanel onUpdateSearch={this.onUpdateSearch} />
                     <AppFilter />
                 </div>
 
-                <EmployersList data={this.state.data}
+                <EmployersList
+                    data={visibleData}
                     onDelete={this.deleteItem}
-                    onToggleIncrease={this.onToggleIncrease}
-                    onToggleRise={this.onToggleRise}
+                    onToggleProp={this.onToggleProp}
                 />
                 <EmployeesAddForm onAdd={this.addItem} />
             </div>
